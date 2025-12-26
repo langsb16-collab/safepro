@@ -88,6 +88,31 @@ app.get('/api/dashboard', (c) => {
   return c.json(data)
 })
 
+// API: 119 긴급 신고
+app.post('/api/emergency/report', async (c) => {
+  try {
+    const body = await c.req.json()
+    const { type, location, gps, photos, timestamp } = body
+    
+    // 119 신고 시뮬레이션
+    const report_id = `EMG${Date.now()}`
+    
+    return c.json({
+      success: true,
+      report_id,
+      type,
+      location,
+      gps,
+      photos,
+      timestamp,
+      status: 'reported',
+      message: '119 긴급 신고가 접수되었습니다.'
+    })
+  } catch (error) {
+    return c.json({ success: false, error: 'Emergency report failed' }, 500)
+  }
+})
+
 // 메인 페이지 - React 앱 제공
 app.get('/', (c) => {
   return c.html(`

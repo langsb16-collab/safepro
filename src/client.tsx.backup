@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { translations, type Language, getSavedLanguage, saveLanguage, getTranslation } from './i18n'
-import { emergency119Translations } from './emergency-i18n'
 
 // 메인 App 컴포넌트
 function App() {
   const [language, setLanguage] = useState<Language>(getSavedLanguage())
   const [activeSection, setActiveSection] = useState<string>('home')
   const [dashboardData, setDashboardData] = useState<any>(null)
-  const [show119Modal, setShow119Modal] = useState<boolean>(false)
-  const [emergencyCountdown, setEmergencyCountdown] = useState<number>(3)
-  const [emergencyType, setEmergencyType] = useState<string>('')
-  const [isMonitoring, setIsMonitoring] = useState<boolean>(false)
   
   const t = translations[language]
-  const e119 = emergency119Translations[language]
   
   // 언어 변경 핸들러
   const handleLanguageChange = (newLang: Language) => {
@@ -68,7 +62,6 @@ function App() {
             <div className="hidden md:flex space-x-1">
               {[
                 { id: 'home', icon: 'fa-home' },
-                { id: 'emergency', icon: 'fa-ambulance', color: 'text-brand-red' },
                 { id: 'detection', icon: 'fa-camera' },
                 { id: 'inspection', icon: 'fa-clipboard-check' },
                 { id: 'reports', icon: 'fa-file-alt' },
@@ -81,14 +74,12 @@ function App() {
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     activeSection === item.id
                       ? 'bg-brand-blue text-white'
-                      : item.id === 'emergency' 
-                        ? 'text-brand-red hover:bg-red-50 font-bold'
-                        : 'text-gray-700 hover:bg-gray-100'
+                      : 'text-gray-700 hover:bg-gray-100'
                   }`}
-                  title={item.id === 'emergency' ? e119.emergency.subtitle : t.nav[item.id + 'Desc' as keyof typeof t.nav]}
+                  title={t.nav[item.id + 'Desc' as keyof typeof t.nav]}
                 >
-                  <i className={`fas ${item.icon} mr-2 ${item.color || ''}`}></i>
-                  {item.id === 'emergency' ? e119.emergency.title : t.nav[item.id as keyof typeof t.nav]}
+                  <i className={`fas ${item.icon} mr-2`}></i>
+                  {t.nav[item.id as keyof typeof t.nav]}
                 </button>
               ))}
             </div>
@@ -114,7 +105,6 @@ function App() {
       {/* 메인 컨텐츠 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeSection === 'home' && <HomeSection t={t} data={dashboardData} />}
-        {activeSection === 'emergency' && <Emergency119Section e119={e119} language={language} show119Modal={show119Modal} setShow119Modal={setShow119Modal} emergencyCountdown={emergencyCountdown} setEmergencyCountdown={setEmergencyCountdown} emergencyType={emergencyType} setEmergencyType={setEmergencyType} isMonitoring={isMonitoring} setIsMonitoring={setIsMonitoring} />}
         {activeSection === 'detection' && <DetectionSection t={t} onAnalyze={analyzeImage} />}
         {activeSection === 'inspection' && <InspectionSection t={t} onAnalyze={analyzeImage} />}
         {activeSection === 'reports' && <ReportsSection t={t} data={dashboardData} />}
@@ -502,293 +492,6 @@ function ConsoleSection({ t, data }: any) {
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-// 119 긴급 신고 섹션
-function Emergency119Section({ e119, language, show119Modal, setShow119Modal, emergencyCountdown, setEmergencyCountdown, emergencyType, setEmergencyType, isMonitoring, setIsMonitoring }: any) {
-  const [detectedHazards, setDetectedHazards] = useState<any[]>([])
-  const [reportHistory, setReportHistory] = useState<any[]>([])
-  
-  // 실시간 감지 시작/중지
-  const toggleMonitoring = () => {
-    setIsMonitoring(!isMonitoring)
-    if (!isMonitoring) {
-      // 감지 시작 시뮬레이션 (5초 후 위험 감지)
-      setTimeout(() => {
-        simulateHazardDetection()
-      }, 5000)
-    } else {
-      // 감지 중지
-      setDetectedHazards([])
-    }
-  }
-  
-  // 위험 감지 시뮬레이션
-  const simulateHazardDetection = () => {
-    const hazardTypes = ['fire', 'collapse', 'fall', 'scream', 'spark']
-    const randomType = hazardTypes[Math.floor(Math.random() * hazardTypes.length)]
-    
-    setEmergencyType(randomType)
-    setDetectedHazards([
-      {
-        type: randomType,
-        location: '현장 A동 3층',
-        timestamp: new Date().toISOString(),
-        risk: 'high'
-      }
-    ])
-    
-    // 119 신고 모달 표시
-    setShow119Modal(true)
-    
-    // 카운트다운 시작
-    let countdown = 3
-    setEmergencyCountdown(countdown)
-    
-    const timer = setInterval(() => {
-      countdown--
-      setEmergencyCountdown(countdown)
-      
-      if (countdown === 0) {
-        clearInterval(timer)
-        // 자동 신고
-        submitEmergencyReport(randomType)
-      }
-    }, 1000)
-  }
-  
-  // 119 신고 제출
-  const submitEmergencyReport = async (type: string) => {
-    try {
-      const response = await fetch('/api/emergency/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type,
-          location: '현장 A동 3층',
-          gps: { lat: 37.5665, lng: 126.9780 },
-          photos: ['photo1.jpg', 'photo2.jpg'],
-          timestamp: new Date().toISOString()
-        })
-      })
-      
-      const data = await response.json()
-      
-      // 신고 이력에 추가
-      setReportHistory(prev => [{
-        id: data.report_id || `REP${Date.now()}`,
-        type,
-        location: '현장 A동 3층',
-        timestamp: new Date().toISOString(),
-        status: 'reported'
-      }, ...prev])
-      
-      setShow119Modal(false)
-      alert(e119.emergency.success.message)
-    } catch (error) {
-      console.error('Emergency report error:', error)
-      alert(e119.emergency.failure.networkError)
-    }
-  }
-  
-  return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            <i className="fas fa-ambulance text-brand-red text-3xl mr-3 animate-pulse"></i>
-            {e119.emergency.title}
-          </h1>
-          <p className="text-brand-text mt-2">{e119.emergency.subtitle}</p>
-        </div>
-        
-        <button
-          onClick={toggleMonitoring}
-          className={`px-6 py-3 rounded-lg font-bold text-lg transition-all ${
-            isMonitoring
-              ? 'bg-brand-red text-white hover:bg-red-700 animate-pulse'
-              : 'bg-brand-blue text-white hover:bg-blue-700'
-          }`}
-        >
-          <i className={`fas ${isMonitoring ? 'fa-stop-circle' : 'fa-play-circle'} mr-2`}></i>
-          {isMonitoring ? e119.emergency.stopMonitoring : e119.emergency.startMonitoring}
-        </button>
-      </div>
-      
-      {/* 감지 상태 */}
-      {isMonitoring && (
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-brand-red">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <div className="animate-pulse bg-brand-red rounded-full w-4 h-4 mr-3"></div>
-              <span className="text-lg font-bold text-brand-red">
-                {detectedHazards.length > 0 ? e119.emergency.status.detecting : e119.emergency.status.monitoring}
-              </span>
-            </div>
-            <span className="text-sm text-brand-text">
-              {new Date().toLocaleTimeString(language === 'ko' ? 'ko-KR' : 'en-US')}
-            </span>
-          </div>
-          
-          {detectedHazards.length > 0 && (
-            <div className="space-y-3">
-              {detectedHazards.map((hazard, idx) => (
-                <div key={idx} className="bg-red-50 rounded-lg p-4 border border-red-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-lg font-bold text-brand-red">
-                      🚨 {e119.emergency.types[hazard.type as keyof typeof e119.emergency.types]}
-                    </span>
-                    <span className="text-xs bg-brand-red text-white px-3 py-1 rounded-full">
-                      {e119.emergency.risk.high}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700">
-                    <i className="fas fa-map-marker-alt mr-2"></i>
-                    {hazard.location}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(hazard.timestamp).toLocaleString(language === 'ko' ? 'ko-KR' : 'en-US')}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {detectedHazards.length === 0 && (
-            <p className="text-brand-text text-center py-8">
-              <i className="fas fa-shield-alt text-4xl text-brand-green mb-3 block"></i>
-              {e119.emergency.detection.safe}
-            </p>
-          )}
-        </div>
-      )}
-      
-      {/* 감지 유형 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {Object.keys(e119.emergency.types).slice(0, 6).map((typeKey) => (
-          <div key={typeKey} className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow border-l-4 border-brand-yellow">
-            <div className="flex items-center">
-              <div className="bg-brand-yellow bg-opacity-10 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                <i className="fas fa-exclamation-triangle text-brand-yellow text-xl"></i>
-              </div>
-              <div>
-                <p className="font-bold text-gray-900">
-                  {e119.emergency.types[typeKey as keyof typeof e119.emergency.types]}
-                </p>
-                <p className="text-xs text-brand-text">Auto-detect & Report</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* 신고 이력 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-          <i className="fas fa-history text-brand-blue mr-2"></i>
-          {e119.emergency.history.title}
-        </h2>
-        
-        {reportHistory.length === 0 ? (
-          <p className="text-brand-text text-center py-8">
-            {e119.emergency.history.noRecords}
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {reportHistory.map((report, idx) => (
-              <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:border-brand-blue transition-colors">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {e119.emergency.types[report.type as keyof typeof e119.emergency.types]}
-                    </p>
-                    <p className="text-sm text-brand-text mt-1">
-                      <i className="fas fa-map-marker-alt mr-1"></i>
-                      {report.location}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(report.timestamp).toLocaleString(language === 'ko' ? 'ko-KR' : 'en-US')}
-                    </p>
-                  </div>
-                  <span className="text-xs bg-brand-green text-white px-3 py-1 rounded-full">
-                    {e119.emergency.status.reported}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      
-      {/* 119 신고 모달 */}
-      {show119Modal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-            <div className="text-center mb-6">
-              <i className="fas fa-exclamation-triangle text-6xl text-brand-red mb-4 animate-pulse"></i>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {e119.emergency.modal.title}
-              </h2>
-              <div className="text-5xl font-bold text-brand-red my-4">
-                {emergencyCountdown}
-              </div>
-              <p className="text-lg text-brand-text">
-                {emergencyCountdown} {e119.emergency.modal.countdownTitle}
-              </p>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-2 text-sm">
-              <p>
-                <span className="font-medium">{e119.emergency.modal.incidentType}:</span>{' '}
-                {e119.emergency.types[emergencyType as keyof typeof e119.emergency.types]}
-              </p>
-              <p>
-                <span className="font-medium">{e119.emergency.modal.location}:</span> 현장 A동 3층
-              </p>
-              <p>
-                <span className="font-medium">{e119.emergency.modal.sendingInfo}:</span>{' '}
-                GPS, {e119.emergency.modal.photos}, {e119.emergency.modal.audio}
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  setEmergencyCountdown(0)
-                  submitEmergencyReport(emergencyType)
-                }}
-                className="w-full bg-brand-red text-white py-3 rounded-lg font-bold hover:bg-red-700 transition-colors"
-              >
-                <i className="fas fa-phone mr-2"></i>
-                {e119.emergency.modal.reportNow}
-              </button>
-              
-              <button
-                onClick={() => {
-                  setShow119Modal(false)
-                  setDetectedHazards([])
-                }}
-                className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-              >
-                {e119.emergency.modal.cancel}
-              </button>
-              
-              <button
-                onClick={() => {
-                  setShow119Modal(false)
-                  alert('관리자에게 알림이 전송되었습니다.')
-                }}
-                className="w-full bg-brand-blue text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                <i className="fas fa-user-shield mr-2"></i>
-                {e119.emergency.modal.adminOnly}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
