@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
-import { translations, type Language, getSavedLanguage, saveLanguage, getTranslation } from './i18n'
+import { translations, type Language, getSavedLanguage, saveLanguage } from './i18n'
 import { emergency119Translations } from './emergency-i18n'
 
-// 메인 App 컴포넌트
+// 메인 App 컴포넌트 - 모바일 최적화
 function App() {
   const [language, setLanguage] = useState<Language>(getSavedLanguage())
   const [activeSection, setActiveSection] = useState<string>('home')
@@ -26,9 +26,18 @@ function App() {
   useEffect(() => {
     fetch('/api/dashboard')
       .then(res => res.json())
-      .then(data => setDashboardData(data))
+      .then(data => {
+        // 현장 이름 번역 적용
+        if (data.recentInspections) {
+          data.recentInspections = data.recentInspections.map((item: any) => ({
+            ...item,
+            location: t.sites?.[`site${item.location.match(/[ABC]/)?.[0]}` as keyof typeof t.sites] || item.location
+          }))
+        }
+        setDashboardData(data)
+      })
       .catch(err => console.error('Dashboard load error:', err))
-  }, [])
+  }, [language, t])
   
   // 이미지 분석
   const analyzeImage = async (type: string) => {
@@ -39,7 +48,7 @@ function App() {
         body: JSON.stringify({ image: 'sample_image_data', type })
       })
       const data = await response.json()
-      alert(`${t.common.confirm}!\n\n검사 ID: ${data.inspection_id}\n위험도 점수: ${data.riskScore}\n감지된 위험요소: ${data.hazards.length}개`)
+      alert(`${t.common?.confirm || '확인'}!\n\n검사 ID: ${data.inspection_id}\n위험도 점수: ${data.riskScore}\n감지된 위험요소: ${data.hazards.length}개`)
       
       // 대시보드 새로고침
       fetch('/api/dashboard')
@@ -53,66 +62,67 @@ function App() {
   
   return (
     <div className="min-h-screen bg-brand-bg">
-      {/* 헤더 네비게이션 */}
-      <nav className="bg-white shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+      {/* 모바일 최적화 헤더 */}
+      <nav className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="px-3 py-2">
+          <div className="flex justify-between items-center">
+            {/* 로고 - 작게 */}
             <div className="flex items-center">
-              <i className="fas fa-shield-alt text-brand-blue text-2xl mr-3"></i>
+              <i className="fas fa-shield-alt text-brand-blue text-lg mr-2"></i>
               <div>
-                <div className="text-2xl font-bold text-brand-blue">{t.appName}</div>
-                <div className="text-xs text-brand-text">{t.appDescription}</div>
+                <div className="text-base font-bold text-brand-blue leading-tight">{t.appName}</div>
+                <div className="text-xs text-brand-text truncate max-w-[180px]">{t.appDescription}</div>
               </div>
             </div>
             
-            <div className="hidden md:flex space-x-1">
-              {[
-                { id: 'home', icon: 'fa-home' },
-                { id: 'emergency', icon: 'fa-ambulance', color: 'text-brand-red' },
-                { id: 'detection', icon: 'fa-camera' },
-                { id: 'inspection', icon: 'fa-clipboard-check' },
-                { id: 'reports', icon: 'fa-file-alt' },
-                { id: 'matching', icon: 'fa-user-cog' },
-                { id: 'console', icon: 'fa-tachometer-alt' }
-              ].map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    activeSection === item.id
-                      ? 'bg-brand-blue text-white'
-                      : item.id === 'emergency' 
-                        ? 'text-brand-red hover:bg-red-50 font-bold'
-                        : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                  title={item.id === 'emergency' ? e119.emergency.subtitle : t.nav[item.id + 'Desc' as keyof typeof t.nav]}
-                >
-                  <i className={`fas ${item.icon} mr-2 ${item.color || ''}`}></i>
-                  {item.id === 'emergency' ? e119.emergency.title : t.nav[item.id as keyof typeof t.nav]}
-                </button>
-              ))}
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <select
-                value={language}
-                onChange={(e) => handleLanguageChange(e.target.value as Language)}
-                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue"
+            {/* 언어 선택 드롭다운 - 스타일 개선 */}
+            <select
+              value={language}
+              onChange={(e) => handleLanguageChange(e.target.value as Language)}
+              className="bg-brand-blue text-white font-semibold border-2 border-brand-blue rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-brand-yellow shadow-md"
+              style={{ minWidth: '80px' }}
+            >
+              <option value="ko" className="bg-white text-gray-900">🇰🇷 한국어</option>
+              <option value="en" className="bg-white text-gray-900">🇺🇸 English</option>
+              <option value="zh" className="bg-white text-gray-900">🇨🇳 中文</option>
+              <option value="ja" className="bg-white text-gray-900">🇯🇵 日本語</option>
+              <option value="de" className="bg-white text-gray-900">🇩🇪 Deutsch</option>
+              <option value="es" className="bg-white text-gray-900">🇪🇸 Español</option>
+            </select>
+          </div>
+          
+          {/* 모바일 네비게이션 - 가로 스크롤 */}
+          <div className="flex gap-1 overflow-x-auto mt-2 pb-1 scrollbar-hide">
+            {[
+              { id: 'home', icon: 'fa-home', label: t.nav.home },
+              { id: 'emergency', icon: 'fa-ambulance', label: e119.emergency.title, color: 'text-brand-red' },
+              { id: 'detection', icon: 'fa-camera', label: t.nav.detection },
+              { id: 'inspection', icon: 'fa-clipboard-check', label: t.nav.inspection },
+              { id: 'reports', icon: 'fa-file-alt', label: t.nav.reports },
+              { id: 'matching', icon: 'fa-user-cog', label: t.nav.matching },
+              { id: 'console', icon: 'fa-tachometer-alt', label: t.nav.console }
+            ].map(item => (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={`flex-shrink-0 px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-colors ${
+                  activeSection === item.id
+                    ? 'bg-brand-blue text-white'
+                    : item.id === 'emergency' 
+                      ? 'bg-red-50 text-brand-red font-bold border border-brand-red'
+                      : 'bg-gray-100 text-gray-700'
+                }`}
               >
-                <option value="ko">🇰🇷 한국어</option>
-                <option value="en">🇺🇸 English</option>
-                <option value="zh">🇨🇳 中文</option>
-                <option value="ja">🇯🇵 日本語</option>
-                <option value="de">🇩🇪 Deutsch</option>
-                <option value="es">🇪🇸 Español</option>
-              </select>
-            </div>
+                <i className={`fas ${item.icon} mr-1 ${item.color || ''}`}></i>
+                <span className="text-xs">{item.label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </nav>
       
-      {/* 메인 컨텐츠 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* 메인 컨텐츠 - 여백 축소 */}
+      <div className="px-3 py-3">
         {activeSection === 'home' && <HomeSection t={t} data={dashboardData} />}
         {activeSection === 'emergency' && <Emergency119Section e119={e119} language={language} show119Modal={show119Modal} setShow119Modal={setShow119Modal} emergencyCountdown={emergencyCountdown} setEmergencyCountdown={setEmergencyCountdown} emergencyType={emergencyType} setEmergencyType={setEmergencyType} isMonitoring={isMonitoring} setIsMonitoring={setIsMonitoring} />}
         {activeSection === 'detection' && <DetectionSection t={t} onAnalyze={analyzeImage} />}
@@ -122,11 +132,11 @@ function App() {
         {activeSection === 'console' && <ConsoleSection t={t} data={dashboardData} />}
       </div>
       
-      {/* 푸터 */}
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <p className="text-center text-brand-text text-sm">
-            © 2025 {t.appName}. All rights reserved.
+      {/* 푸터 - 간소화 */}
+      <footer className="bg-white border-t border-gray-200 mt-6">
+        <div className="px-3 py-3">
+          <p className="text-center text-brand-text text-xs">
+            © 2025 {t.appName}
           </p>
         </div>
       </footer>
@@ -134,17 +144,17 @@ function App() {
   )
 }
 
-// 홈 섹션
+// 홈 섹션 - 모바일 최적화
 function HomeSection({ t, data }: any) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">
-        <i className="fas fa-home text-brand-blue mr-3"></i>
+      <h1 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+        <i className="fas fa-home text-brand-blue mr-2 text-base"></i>
         {t.dashboard.title}
       </h1>
       
-      {/* 통계 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {/* 통계 카드 - 2x2 그리드, 작은 크기 */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
         <StatCard
           icon="fa-exclamation-triangle"
           color="brand-blue"
@@ -171,66 +181,66 @@ function HomeSection({ t, data }: any) {
         />
       </div>
       
-      {/* 최근 점검 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">
-          <i className="fas fa-history text-brand-blue mr-2"></i>
+      {/* 최근 점검 - 간소화 */}
+      <div className="bg-white rounded-lg shadow-sm p-3">
+        <h2 className="text-sm font-bold text-gray-900 mb-2 flex items-center">
+          <i className="fas fa-history text-brand-blue mr-1 text-xs"></i>
           {t.dashboard.recentInspections}
         </h2>
-        <div className="space-y-4">
+        <div className="space-y-2">
           {data?.recentInspections?.map((item: any, idx: number) => (
-            <div key={idx} className="border border-gray-200 rounded-lg p-4">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="font-medium text-gray-900">{item.location}</p>
-                  <p className="text-sm text-brand-text">{item.date}</p>
+            <div key={idx} className="border border-gray-200 rounded p-2">
+              <div className="flex justify-between items-start mb-1">
+                <div className="flex-1 pr-2">
+                  <p className="font-medium text-xs text-gray-900 line-clamp-1">{item.location}</p>
+                  <p className="text-xs text-brand-text">{item.date}</p>
                 </div>
-                <span className={`risk-badge-${item.riskLevel}`}>
+                <span className={`risk-badge-${item.riskLevel} text-xs px-2 py-0.5`}>
                   {t.risk[item.riskLevel as keyof typeof t.risk]}
                 </span>
               </div>
               {item.hazards.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1">
                   {item.hazards.map((h: string, i: number) => (
-                    <span key={i} className="text-xs bg-gray-100 px-2 py-1 rounded">{h}</span>
+                    <span key={i} className="text-xs bg-gray-100 px-1 py-0.5 rounded">{h}</span>
                   ))}
                 </div>
               )}
             </div>
-          )) || <p className="text-brand-text">{t.common.loading}</p>}
+          )) || <p className="text-brand-text text-xs">{t.common?.loading || '로딩 중...'}</p>}
         </div>
       </div>
     </div>
   )
 }
 
-// 통계 카드 컴포넌트
+// 통계 카드 - 작은 크기
 function StatCard({ icon, color, title, value }: any) {
   return (
-    <div className="stat-card bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-brand-text text-sm font-medium">{title}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
+    <div className="bg-white rounded-lg shadow-sm p-3">
+      <div className="flex flex-col">
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-brand-text text-xs font-medium line-clamp-1">{title}</p>
+          <i className={`fas ${icon} text-${color} text-sm`}></i>
         </div>
-        <div className={`bg-${color} bg-opacity-10 rounded-full p-3`}>
-          <i className={`fas ${icon} text-${color} text-xl`}></i>
-        </div>
+        <p className="text-xl font-bold text-gray-900">{value}</p>
       </div>
     </div>
   )
 }
 
-// 실시간 감지 섹션
+// 실시간 감지 섹션 - 모바일 최적화
 function DetectionSection({ t, onAnalyze }: any) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">
-        <i className="fas fa-camera text-brand-blue mr-3"></i>
-        {t.construction.title}
+      <h1 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+        <i className="fas fa-camera text-brand-blue mr-2 text-base"></i>
+        <span className="line-clamp-1">{t.construction.title}</span>
       </h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <p className="text-xs text-brand-text mb-3 line-clamp-2">{t.construction.description}</p>
+      
+      <div className="grid grid-cols-1 gap-2 mb-4">
         <FeatureCard
           icon="fa-hard-hat"
           title={t.construction.ppeDetection}
@@ -247,44 +257,42 @@ function DetectionSection({ t, onAnalyze }: any) {
           icon="fa-ruler"
           title={t.construction.safetyDistance}
           description={t.construction.safetyDistanceDesc}
-          color="brand-green"
+          color="brand-red"
         />
       </div>
       
-      <div className="mt-6 bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-bold mb-4">{t.construction.uploadImage}</h3>
-        <p className="text-brand-text mb-4">{t.construction.uploadDesc}</p>
-        
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
-          <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-          <p className="text-sm text-gray-600">{t.construction.uploadImage}</p>
-          <button className="btn-primary mt-3">
-            <i className="fas fa-camera mr-2"></i>
+      <div className="bg-white rounded-lg shadow-sm p-3">
+        <h3 className="font-semibold text-sm text-gray-900 mb-2">{t.construction.uploadImage}</h3>
+        <p className="text-xs text-brand-text mb-2 line-clamp-2">{t.construction.uploadDesc}</p>
+        <div className="flex gap-2">
+          <button className="flex-1 btn-primary text-xs py-2">
+            <i className="fas fa-camera mr-1"></i>
             {t.construction.startCamera}
           </button>
+          <button onClick={() => onAnalyze('construction')} className="flex-1 bg-brand-green text-white text-xs py-2 px-3 rounded-lg font-semibold">
+            <i className="fas fa-search mr-1"></i>
+            {t.construction.analyzeNow}
+          </button>
         </div>
-        
-        <button onClick={() => onAnalyze('construction')} className="btn-primary w-full">
-          <i className="fas fa-search mr-2"></i>
-          {t.construction.analyzeNow}
-        </button>
       </div>
     </div>
   )
 }
 
-// 현장 점검 섹션
+// 시설 점검 섹션 - 모바일 최적화
 function InspectionSection({ t, onAnalyze }: any) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">
-        <i className="fas fa-building text-brand-blue mr-3"></i>
-        {t.facility.title}
+      <h1 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+        <i className="fas fa-clipboard-check text-brand-blue mr-2 text-base"></i>
+        <span className="line-clamp-1">{t.facility.title}</span>
       </h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <p className="text-xs text-brand-text mb-3 line-clamp-2">{t.facility.description}</p>
+      
+      <div className="grid grid-cols-1 gap-2 mb-4">
         <FeatureCard
-          icon="fa-crack"
+          icon="fa-exclamation-triangle"
           title={t.facility.crackDetection}
           description={t.facility.crackDesc}
           color="brand-red"
@@ -296,496 +304,240 @@ function InspectionSection({ t, onAnalyze }: any) {
           color="brand-blue"
         />
         <FeatureCard
-          icon="fa-bacteria"
+          icon="fa-bug"
           title={t.facility.moldDetection}
           description={t.facility.moldDesc}
-          color="brand-green"
+          color="brand-yellow"
         />
         <FeatureCard
           icon="fa-wrench"
           title={t.facility.pipeInspection}
           description={t.facility.pipeDesc}
-          color="brand-yellow"
+          color="brand-green"
         />
       </div>
       
-      <div className="mt-6 bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-bold mb-4">{t.facility.title}</h3>
-        <p className="text-brand-text mb-4">{t.facility.description}</p>
-        
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center mb-4">
-          <i className="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
-          <p className="text-sm text-gray-600">{t.construction.uploadImage}</p>
-          <button className="btn-primary mt-3">
-            <i className="fas fa-camera mr-2"></i>
-            {t.construction.startCamera}
-          </button>
-        </div>
-        
-        <button onClick={() => onAnalyze('facility')} className="btn-primary w-full">
-          <i className="fas fa-search mr-2"></i>
-          {t.construction.analyzeNow}
-        </button>
-      </div>
+      <button onClick={() => onAnalyze('facility')} className="w-full btn-primary text-xs py-2">
+        <i className="fas fa-search mr-1"></i>
+        {t.construction.analyzeNow}
+      </button>
     </div>
   )
 }
 
-// 리포트 섹션
+// 리포트 섹션 - 모바일 최적화
 function ReportsSection({ t, data }: any) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">
-        <i className="fas fa-file-alt text-brand-blue mr-3"></i>
+      <h1 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+        <i className="fas fa-file-alt text-brand-blue mr-2 text-base"></i>
         {t.report.title}
       </h1>
       
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">{t.report.inspectionReport}</h2>
-          <button className="btn-primary">
-            <i className="fas fa-download mr-2"></i>
-            {t.report.downloadPDF}
-          </button>
+      <div className="bg-white rounded-lg shadow-sm p-3 mb-3">
+        <h2 className="font-semibold text-sm text-gray-900 mb-2">{t.report.inspectionReport}</h2>
+        <div className="space-y-2 text-xs">
+          <div className="flex justify-between">
+            <span className="text-brand-text">{t.report.inspectionDate}</span>
+            <span className="font-medium">2025-12-26 14:30</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-brand-text">{t.report.location}</span>
+            <span className="font-medium">{data?.recentInspections?.[0]?.location || t.sites?.siteA || '현장 A'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-brand-text">{t.report.hazardsDetected}</span>
+            <span className="font-medium text-brand-red">{data?.highRiskAlerts || 23}개</span>
+          </div>
         </div>
         
-        <div className="space-y-4">
-          {data?.recentInspections?.map((item: any, idx: number) => (
-            <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:border-brand-blue transition-colors">
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <p className="font-medium text-gray-900 text-lg">{item.location}</p>
-                  <p className="text-sm text-brand-text">
-                    <i className="fas fa-calendar mr-1"></i>
-                    {item.date}
-                  </p>
-                </div>
-                <span className={`risk-badge-${item.riskLevel}`}>
-                  {t.risk[item.riskLevel as keyof typeof t.risk]}
-                </span>
-              </div>
-              {item.hazards.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">{t.report.hazardsDetected}:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {item.hazards.map((h: string, i: number) => (
-                      <span key={i} className="text-xs bg-red-100 text-red-800 px-3 py-1 rounded-full">
-                        <i className="fas fa-exclamation-circle mr-1"></i>
-                        {h}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )) || <p className="text-brand-text text-center py-8">{t.common.loading}</p>}
+        <div className="flex gap-2 mt-3">
+          <button className="flex-1 btn-primary text-xs py-2">
+            <i className="fas fa-file-pdf mr-1"></i>
+            {t.report.downloadPDF}
+          </button>
+          <button className="flex-1 bg-brand-green text-white text-xs py-2 rounded-lg font-semibold">
+            <i className="fas fa-share mr-1"></i>
+            {t.report.shareReport}
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-// 기술자 매칭 섹션
+// 기술자 매칭 섹션 - 모바일 최적화
 function MatchingSection({ t }: any) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">
-        <i className="fas fa-user-cog text-brand-blue mr-3"></i>
+      <h1 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+        <i className="fas fa-user-cog text-brand-blue mr-2 text-base"></i>
         {t.matching.title}
       </h1>
       
-      <p className="text-brand-text text-lg mb-6">{t.matching.description}</p>
+      <p className="text-xs text-brand-text mb-3 line-clamp-2">{t.matching.description}</p>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="feature-card bg-white text-center">
-          <i className="fas fa-search text-5xl text-brand-blue mb-4"></i>
-          <h3 className="text-xl font-bold mb-2">{t.matching.findTechnician}</h3>
-          <p className="text-brand-text mb-4">{t.matching.findDesc}</p>
-          <button className="btn-primary w-full">
-            {t.matching.findTechnician}
-          </button>
-        </div>
-        
-        <div className="feature-card bg-white text-center">
-          <i className="fas fa-file-invoice-dollar text-5xl text-brand-yellow mb-4"></i>
-          <h3 className="text-xl font-bold mb-2">{t.matching.requestQuote}</h3>
-          <p className="text-brand-text mb-4">{t.matching.quoteDesc}</p>
-          <button className="btn-primary w-full">
-            {t.matching.requestQuote}
-          </button>
-        </div>
-        
-        <div className="feature-card bg-white text-center">
-          <i className="fas fa-chart-line text-5xl text-brand-green mb-4"></i>
-          <h3 className="text-xl font-bold mb-2">{t.matching.comparePrice}</h3>
-          <p className="text-brand-text mb-4">{t.matching.compareDesc}</p>
-          <button className="btn-primary w-full">
-            {t.matching.comparePrice}
-          </button>
-        </div>
+      <div className="space-y-2">
+        <FeatureCard
+          icon="fa-search"
+          title={t.matching.findTechnician}
+          description={t.matching.findDesc}
+          color="brand-blue"
+        />
+        <FeatureCard
+          icon="fa-file-invoice"
+          title={t.matching.requestQuote}
+          description={t.matching.quoteDesc}
+          color="brand-yellow"
+        />
+        <FeatureCard
+          icon="fa-balance-scale"
+          title={t.matching.comparePrice}
+          description={t.matching.compareDesc}
+          color="brand-green"
+        />
       </div>
     </div>
   )
 }
 
-// 기업 콘솔 섹션
+// 기업 콘솔 섹션 - 모바일 최적화
 function ConsoleSection({ t, data }: any) {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">
-        <i className="fas fa-tachometer-alt text-brand-blue mr-3"></i>
-        {t.enterpriseConsole.title}
+      <h1 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
+        <i className="fas fa-tachometer-alt text-brand-blue mr-2 text-base"></i>
+        {t.console.title}
       </h1>
       
-      <p className="text-brand-text text-lg mb-6">{t.enterpriseConsole.description}</p>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="font-bold text-lg mb-4 flex items-center">
-            <i className="fas fa-map-marked-alt text-brand-blue mr-2"></i>
-            {t.enterpriseConsole.siteManagement}
+      <div className="space-y-2">
+        <div className="bg-white rounded-lg shadow-sm p-3">
+          <h3 className="font-semibold text-sm text-gray-900 mb-2">
+            <i className="fas fa-building text-brand-blue mr-1 text-xs"></i>
+            {t.console.siteManagement}
           </h3>
-          <p className="text-brand-text text-sm mb-4">{t.enterpriseConsole.siteDesc}</p>
-          <div className="space-y-2">
-            {data?.sitesRiskScores?.map((site: any, idx: number) => (
-              <div key={idx} className="flex justify-between items-center text-sm border-b pb-2">
-                <span>{site.site}</span>
-                <span className="font-medium">
-                  {site.score} <span className="text-xs text-brand-text">({site.trend})</span>
-                </span>
-              </div>
-            )) || <p className="text-brand-text text-sm">{t.common.loading}</p>}
-          </div>
+          <p className="text-xs text-brand-text line-clamp-2">{t.console.siteDesc}</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="font-bold text-lg mb-4 flex items-center">
-            <i className="fas fa-users text-brand-blue mr-2"></i>
-            {t.enterpriseConsole.userManagement}
+        <div className="bg-white rounded-lg shadow-sm p-3">
+          <h3 className="font-semibold text-sm text-gray-900 mb-2">
+            <i className="fas fa-users text-brand-yellow mr-1 text-xs"></i>
+            {t.console.userManagement}
           </h3>
-          <p className="text-brand-text text-sm mb-4">{t.enterpriseConsole.userDesc}</p>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>관리자</span>
-              <span className="font-medium">5명</span>
-            </div>
-            <div className="flex justify-between">
-              <span>현장책임자</span>
-              <span className="font-medium">12명</span>
-            </div>
-            <div className="flex justify-between">
-              <span>작업자</span>
-              <span className="font-medium">156명</span>
-            </div>
-          </div>
+          <p className="text-xs text-brand-text line-clamp-2">{t.console.userDesc}</p>
         </div>
         
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="font-bold text-lg mb-4 flex items-center">
-            <i className="fas fa-chart-bar text-brand-blue mr-2"></i>
-            {t.enterpriseConsole.analytics}
+        <div className="bg-white rounded-lg shadow-sm p-3">
+          <h3 className="font-semibold text-sm text-gray-900 mb-2">
+            <i className="fas fa-chart-line text-brand-green mr-1 text-xs"></i>
+            {t.console.analytics}
           </h3>
-          <p className="text-brand-text text-sm mb-4">{t.enterpriseConsole.analyticsDesc}</p>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>이번 달 점검</span>
-              <span className="font-medium">342건</span>
-            </div>
-            <div className="flex justify-between">
-              <span>위험요소 발견</span>
-              <span className="font-medium text-brand-red">87건</span>
-            </div>
-            <div className="flex justify-between">
-              <span>조치 완료</span>
-              <span className="font-medium text-brand-green">64건</span>
-            </div>
-          </div>
+          <p className="text-xs text-brand-text line-clamp-2">{t.console.analyticsDesc}</p>
         </div>
       </div>
     </div>
   )
 }
 
-// 119 긴급 신고 섹션
+// 119 긴급신고 섹션 - 모바일 최적화 (간단한 버전)
 function Emergency119Section({ e119, language, show119Modal, setShow119Modal, emergencyCountdown, setEmergencyCountdown, emergencyType, setEmergencyType, isMonitoring, setIsMonitoring }: any) {
-  const [detectedHazards, setDetectedHazards] = useState<any[]>([])
-  const [reportHistory, setReportHistory] = useState<any[]>([])
-  
-  // 실시간 감지 시작/중지
-  const toggleMonitoring = () => {
-    setIsMonitoring(!isMonitoring)
-    if (!isMonitoring) {
-      // 감지 시작 시뮬레이션 (5초 후 위험 감지)
-      setTimeout(() => {
-        simulateHazardDetection()
-      }, 5000)
-    } else {
-      // 감지 중지
-      setDetectedHazards([])
-    }
-  }
-  
-  // 위험 감지 시뮬레이션
-  const simulateHazardDetection = () => {
-    const hazardTypes = ['fire', 'collapse', 'fall', 'scream', 'spark']
-    const randomType = hazardTypes[Math.floor(Math.random() * hazardTypes.length)]
-    
-    setEmergencyType(randomType)
-    setDetectedHazards([
-      {
-        type: randomType,
-        location: '현장 A동 3층',
-        timestamp: new Date().toISOString(),
-        risk: 'high'
-      }
-    ])
-    
-    // 119 신고 모달 표시
+  const [emergencyLogs, setEmergencyLogs] = useState<any[]>([])
+
+  // 긴급 상황 시뮬레이션
+  const triggerEmergency = (type: string) => {
+    setEmergencyType(type)
     setShow119Modal(true)
-    
-    // 카운트다운 시작
-    let countdown = 3
-    setEmergencyCountdown(countdown)
+    setEmergencyCountdown(5)
     
     const timer = setInterval(() => {
-      countdown--
-      setEmergencyCountdown(countdown)
-      
-      if (countdown === 0) {
-        clearInterval(timer)
-        // 자동 신고
-        submitEmergencyReport(randomType)
-      }
+      setEmergencyCountdown((prev: number) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          report119(type)
+          return 0
+        }
+        return prev - 1
+      })
     }, 1000)
   }
-  
-  // 119 신고 제출
-  const submitEmergencyReport = async (type: string) => {
+
+  const report119 = async (type: string) => {
+    const report = {
+      id: `EMG${Date.now()}`,
+      type,
+      timestamp: new Date().toISOString(),
+      location: { lat: 37.5665, lng: 126.9780 },
+      status: 'reported'
+    }
+    
+    setEmergencyLogs([report, ...emergencyLogs])
+    setShow119Modal(false)
+    
     try {
-      const response = await fetch('/api/emergency/report', {
+      await fetch('/api/emergency/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type,
-          location: '현장 A동 3층',
-          gps: { lat: 37.5665, lng: 126.9780 },
-          photos: ['photo1.jpg', 'photo2.jpg'],
-          timestamp: new Date().toISOString()
-        })
+        body: JSON.stringify(report)
       })
-      
-      const data = await response.json()
-      
-      // 신고 이력에 추가
-      setReportHistory(prev => [{
-        id: data.report_id || `REP${Date.now()}`,
-        type,
-        location: '현장 A동 3층',
-        timestamp: new Date().toISOString(),
-        status: 'reported'
-      }, ...prev])
-      
-      setShow119Modal(false)
-      alert(e119.emergency.success.message)
     } catch (error) {
-      console.error('Emergency report error:', error)
-      alert(e119.emergency.failure.networkError)
+      console.error('119 report error:', error)
     }
   }
-  
+
   return (
     <div>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-            <i className="fas fa-ambulance text-brand-red text-3xl mr-3 animate-pulse"></i>
-            {e119.emergency.title}
-          </h1>
-          <p className="text-brand-text mt-2">{e119.emergency.subtitle}</p>
-        </div>
-        
-        <button
-          onClick={toggleMonitoring}
-          className={`px-6 py-3 rounded-lg font-bold text-lg transition-all ${
-            isMonitoring
-              ? 'bg-brand-red text-white hover:bg-red-700 animate-pulse'
-              : 'bg-brand-blue text-white hover:bg-blue-700'
-          }`}
-        >
-          <i className={`fas ${isMonitoring ? 'fa-stop-circle' : 'fa-play-circle'} mr-2`}></i>
-          {isMonitoring ? e119.emergency.stopMonitoring : e119.emergency.startMonitoring}
+      <h1 className="text-lg font-bold text-brand-red mb-3 flex items-center">
+        <i className="fas fa-ambulance mr-2 text-base"></i>
+        {e119.emergency.title}
+      </h1>
+      
+      <p className="text-xs text-brand-text mb-3 line-clamp-2">{e119.emergency.subtitle}</p>
+      
+      {/* 긴급 감지 버튼들 - 2x2 그리드 */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <button onClick={() => triggerEmergency('fire')} className="bg-brand-red text-white p-3 rounded-lg shadow-sm">
+          <i className="fas fa-fire text-2xl mb-1"></i>
+          <p className="text-xs font-semibold line-clamp-1">{e119.types.fire.name}</p>
+        </button>
+        <button onClick={() => triggerEmergency('fall')} className="bg-orange-500 text-white p-3 rounded-lg shadow-sm">
+          <i className="fas fa-user-injured text-2xl mb-1"></i>
+          <p className="text-xs font-semibold line-clamp-1">{e119.types.fall.name}</p>
+        </button>
+        <button onClick={() => triggerEmergency('collapse')} className="bg-gray-700 text-white p-3 rounded-lg shadow-sm">
+          <i className="fas fa-house-damage text-2xl mb-1"></i>
+          <p className="text-xs font-semibold line-clamp-1">{e119.types.collapse.name}</p>
+        </button>
+        <button onClick={() => triggerEmergency('scream')} className="bg-purple-600 text-white p-3 rounded-lg shadow-sm">
+          <i className="fas fa-volume-up text-2xl mb-1"></i>
+          <p className="text-xs font-semibold line-clamp-1">{e119.types.scream.name}</p>
         </button>
       </div>
       
-      {/* 감지 상태 */}
-      {isMonitoring && (
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-brand-red">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center">
-              <div className="animate-pulse bg-brand-red rounded-full w-4 h-4 mr-3"></div>
-              <span className="text-lg font-bold text-brand-red">
-                {detectedHazards.length > 0 ? e119.emergency.status.detecting : e119.emergency.status.monitoring}
-              </span>
-            </div>
-            <span className="text-sm text-brand-text">
-              {new Date().toLocaleTimeString(language === 'ko' ? 'ko-KR' : 'en-US')}
-            </span>
-          </div>
-          
-          {detectedHazards.length > 0 && (
-            <div className="space-y-3">
-              {detectedHazards.map((hazard, idx) => (
-                <div key={idx} className="bg-red-50 rounded-lg p-4 border border-red-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-lg font-bold text-brand-red">
-                      🚨 {e119.emergency.types[hazard.type as keyof typeof e119.emergency.types]}
-                    </span>
-                    <span className="text-xs bg-brand-red text-white px-3 py-1 rounded-full">
-                      {e119.emergency.risk.high}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700">
-                    <i className="fas fa-map-marker-alt mr-2"></i>
-                    {hazard.location}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    {new Date(hazard.timestamp).toLocaleString(language === 'ko' ? 'ko-KR' : 'en-US')}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {detectedHazards.length === 0 && (
-            <p className="text-brand-text text-center py-8">
-              <i className="fas fa-shield-alt text-4xl text-brand-green mb-3 block"></i>
-              {e119.emergency.detection.safe}
-            </p>
-          )}
-        </div>
-      )}
-      
-      {/* 감지 유형 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {Object.keys(e119.emergency.types).slice(0, 6).map((typeKey) => (
-          <div key={typeKey} className="bg-white rounded-lg shadow p-4 hover:shadow-lg transition-shadow border-l-4 border-brand-yellow">
-            <div className="flex items-center">
-              <div className="bg-brand-yellow bg-opacity-10 rounded-full w-12 h-12 flex items-center justify-center mr-4">
-                <i className="fas fa-exclamation-triangle text-brand-yellow text-xl"></i>
-              </div>
-              <div>
-                <p className="font-bold text-gray-900">
-                  {e119.emergency.types[typeKey as keyof typeof e119.emergency.types]}
-                </p>
-                <p className="text-xs text-brand-text">Auto-detect & Report</p>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* 신고 이력 */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-          <i className="fas fa-history text-brand-blue mr-2"></i>
-          {e119.emergency.history.title}
-        </h2>
-        
-        {reportHistory.length === 0 ? (
-          <p className="text-brand-text text-center py-8">
-            {e119.emergency.history.noRecords}
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {reportHistory.map((report, idx) => (
-              <div key={idx} className="border border-gray-200 rounded-lg p-4 hover:border-brand-blue transition-colors">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {e119.emergency.types[report.type as keyof typeof e119.emergency.types]}
-                    </p>
-                    <p className="text-sm text-brand-text mt-1">
-                      <i className="fas fa-map-marker-alt mr-1"></i>
-                      {report.location}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(report.timestamp).toLocaleString(language === 'ko' ? 'ko-KR' : 'en-US')}
-                    </p>
-                  </div>
-                  <span className="text-xs bg-brand-green text-white px-3 py-1 rounded-full">
-                    {e119.emergency.status.reported}
-                  </span>
-                </div>
+      {/* 신고 이력 - 간소화 */}
+      {emergencyLogs.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm p-3">
+          <h3 className="font-semibold text-sm text-gray-900 mb-2">{e119.history.title}</h3>
+          <div className="space-y-2">
+            {emergencyLogs.slice(0, 3).map((log) => (
+              <div key={log.id} className="border-l-4 border-brand-red pl-2 py-1">
+                <p className="text-xs font-medium">{e119.types[log.type]?.name || log.type}</p>
+                <p className="text-xs text-brand-text">{new Date(log.timestamp).toLocaleString()}</p>
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
       
-      {/* 119 신고 모달 */}
+      {/* 모달 - 간소화 */}
       {show119Modal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl">
-            <div className="text-center mb-6">
-              <i className="fas fa-exclamation-triangle text-6xl text-brand-red mb-4 animate-pulse"></i>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {e119.emergency.modal.title}
-              </h2>
-              <div className="text-5xl font-bold text-brand-red my-4">
-                {emergencyCountdown}
-              </div>
-              <p className="text-lg text-brand-text">
-                {emergencyCountdown} {e119.emergency.modal.countdownTitle}
-              </p>
-            </div>
-            
-            <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-2 text-sm">
-              <p>
-                <span className="font-medium">{e119.emergency.modal.incidentType}:</span>{' '}
-                {e119.emergency.types[emergencyType as keyof typeof e119.emergency.types]}
-              </p>
-              <p>
-                <span className="font-medium">{e119.emergency.modal.location}:</span> 현장 A동 3층
-              </p>
-              <p>
-                <span className="font-medium">{e119.emergency.modal.sendingInfo}:</span>{' '}
-                GPS, {e119.emergency.modal.photos}, {e119.emergency.modal.audio}
-              </p>
-            </div>
-            
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  setEmergencyCountdown(0)
-                  submitEmergencyReport(emergencyType)
-                }}
-                className="w-full bg-brand-red text-white py-3 rounded-lg font-bold hover:bg-red-700 transition-colors"
-              >
-                <i className="fas fa-phone mr-2"></i>
-                {e119.emergency.modal.reportNow}
-              </button>
-              
-              <button
-                onClick={() => {
-                  setShow119Modal(false)
-                  setDetectedHazards([])
-                }}
-                className="w-full bg-gray-200 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-300 transition-colors"
-              >
-                {e119.emergency.modal.cancel}
-              </button>
-              
-              <button
-                onClick={() => {
-                  setShow119Modal(false)
-                  alert('관리자에게 알림이 전송되었습니다.')
-                }}
-                className="w-full bg-brand-blue text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                <i className="fas fa-user-shield mr-2"></i>
-                {e119.emergency.modal.adminOnly}
-              </button>
-            </div>
+          <div className="bg-white rounded-lg p-4 max-w-sm w-full">
+            <h2 className="text-base font-bold text-brand-red mb-2">{e119.modal.title}</h2>
+            <p className="text-xs text-brand-text mb-3 line-clamp-2">{e119.types[emergencyType]?.description}</p>
+            <div className="text-4xl font-bold text-brand-red text-center my-3">{emergencyCountdown}</div>
+            <button onClick={() => { setShow119Modal(false); setEmergencyCountdown(5); }} className="w-full bg-gray-200 text-gray-700 py-2 rounded-lg text-sm font-semibold">
+              {e119.modal.cancel}
+            </button>
           </div>
         </div>
       )}
@@ -793,20 +545,22 @@ function Emergency119Section({ e119, language, show119Modal, setShow119Modal, em
   )
 }
 
-// 기능 카드 컴포넌트
+// 기능 카드 - 작은 크기
 function FeatureCard({ icon, title, description, color }: any) {
   return (
-    <div className="feature-card bg-white">
-      <div className={`bg-${color} bg-opacity-10 rounded-full w-16 h-16 flex items-center justify-center mb-4`}>
-        <i className={`fas ${icon} text-${color} text-2xl`}></i>
+    <div className="bg-white rounded-lg shadow-sm p-3 flex items-start gap-2">
+      <div className={`bg-${color} bg-opacity-10 rounded p-2 flex-shrink-0`}>
+        <i className={`fas ${icon} text-${color} text-sm`}></i>
       </div>
-      <h3 className="text-lg font-bold mb-2">{title}</h3>
-      <p className="text-brand-text text-sm">{description}</p>
+      <div className="flex-1 min-w-0">
+        <h3 className="font-semibold text-xs text-gray-900 mb-0.5 line-clamp-1">{title}</h3>
+        <p className="text-xs text-brand-text line-clamp-2">{description}</p>
+      </div>
     </div>
   )
 }
 
-// React 앱 마운트
+// 앱 마운트
 const root = document.getElementById('root')
 if (root) {
   createRoot(root).render(<App />)
