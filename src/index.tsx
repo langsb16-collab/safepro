@@ -1,15 +1,10 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { serveStatic } from 'hono/cloudflare-workers'
 
 const app = new Hono()
 
 // CORS 설정
 app.use('/api/*', cors())
-
-// 정적 파일 제공
-app.use('/static/*', serveStatic({ root: './' }))
-app.use('/assets/*', serveStatic({ root: './dist' }))
 
 // API: 이미지 분석 (시뮬레이션)
 app.post('/api/analyze', async (c) => {

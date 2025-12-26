@@ -8,16 +8,13 @@ export default defineConfig(({ mode }) => {
     return {
       plugins: [react()],
       build: {
-        outDir: 'dist/assets',
-        lib: {
-          entry: 'src/client.tsx',
-          name: 'SafeProClient',
-          formats: ['es'],
-          fileName: () => 'client.js'
-        },
+        outDir: 'dist',
+        emptyOutDir: false,
         rollupOptions: {
-          external: [],
+          input: 'src/client.tsx',
           output: {
+            entryFileNames: 'assets/client.js',
+            format: 'es',
             inlineDynamicImports: true
           }
         }
