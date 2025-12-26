@@ -6,6 +6,16 @@ const app = new Hono()
 // CORS 설정
 app.use('/api/*', cors())
 
+// Favicon 및 정적 파일 처리 (404 대신 빈 응답)
+app.get('/favicon.ico', (c) => {
+  return c.body('', 204) // No Content
+})
+
+// robots.txt 처리
+app.get('/robots.txt', (c) => {
+  return c.text('User-agent: *\nAllow: /')
+})
+
 // API: 이미지 분석 (시뮬레이션)
 app.post('/api/analyze', async (c) => {
   try {

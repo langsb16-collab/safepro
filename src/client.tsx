@@ -368,14 +368,14 @@ function ReportsSection({ t, data }: any) {
 
 // 기술자 매칭 섹션 - 실제 작동 버전
 function MatchingSection({ t }: any) {
-  const [activeTab, setActiveTab] = React.useState<'search' | 'quote' | 'compare'>('search')
-  const [searchCategory, setSearchCategory] = React.useState('')
-  const [searchLocation, setSearchLocation] = React.useState('')
-  const [quoteCategory, setQuoteCategory] = React.useState('')
-  const [quoteDescription, setQuoteDescription] = React.useState('')
-  const [quoteContact, setQuoteContact] = React.useState('')
-  const [showResults, setShowResults] = React.useState(false)
-  const [showQuoteSuccess, setShowQuoteSuccess] = React.useState(false)
+  const [activeTab, setActiveTab] = useState<'search' | 'quote' | 'compare'>('search')
+  const [searchCategory, setSearchCategory] = useState('')
+  const [searchLocation, setSearchLocation] = useState('')
+  const [quoteCategory, setQuoteCategory] = useState('')
+  const [quoteDescription, setQuoteDescription] = useState('')
+  const [quoteContact, setQuoteContact] = useState('')
+  const [showResults, setShowResults] = useState(false)
+  const [showQuoteSuccess, setShowQuoteSuccess] = useState(false)
 
   // 샘플 기술자 데이터
   const sampleTechnicians = [
