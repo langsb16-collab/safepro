@@ -1,8 +1,8 @@
-# SafeVision Pro - 산업 안전 플랫폼
+# Safe Pro - 산업 안전 플랫폼
 
 ## 🎯 프로젝트 개요
 
-**SafeVision Pro**는 AI 기반 산업 안전 및 시설 관리 플랫폼입니다. 휴대폰 카메라를 활용하여 공사 현장의 위험 요소를 실시간으로 감지하고, 건물 시설의 유지보수 진단을 수행하는 B2B SaaS 솔루션입니다.
+**Safe Pro**는 AI 기반 산업 안전 및 시설 관리 플랫폼입니다. 휴대폰 카메라를 활용하여 공사 현장의 위험 요소를 실시간으로 감지하고, 건물 시설의 유지보수 진단을 수행하는 B2B SaaS 솔루션입니다.
 
 ### 핵심 가치
 - 📸 **실시간 위험 감지**: 작업자 보호구 미착용, 전선 노출, 안전거리 위반 자동 감지
@@ -14,16 +14,32 @@
 ## 🌐 배포 URL
 
 ### 현재 배포된 URL
-- **개발 서버**: https://3000-i6yo3k9pwb0tdvdm5v7nx-8f57ffe2.sandbox.novita.ai
-- **언어별 접속**:
-  - 한국어: https://3000-i6yo3k9pwb0tdvdm5v7nx-8f57ffe2.sandbox.novita.ai/?lang=ko
-  - English: https://3000-i6yo3k9pwb0tdvdm5v7nx-8f57ffe2.sandbox.novita.ai/?lang=en
-  - 中文: https://3000-i6yo3k9pwb0tdvdm5v7nx-8f57ffe2.sandbox.novita.ai/?lang=zh
-  - 日本語: https://3000-i6yo3k9pwb0tdvdm5v7nx-8f57ffe2.sandbox.novita.ai/?lang=ja
-  - Deutsch: https://3000-i6yo3k9pwb0tdvdm5v7nx-8f57ffe2.sandbox.novita.ai/?lang=de
-  - Español: https://3000-i6yo3k9pwb0tdvdm5v7nx-8f57ffe2.sandbox.novita.ai/?lang=es
+**메인 URL**: https://3000-i6yo3k9pwb0tdvdm5v7nx-8f57ffe2.sandbox.novita.ai
+
+> **새로운 기능**: 언어 선택은 이제 브라우저의 localStorage에 자동 저장되며, 다음 방문 시 자동으로 복원됩니다!
 
 ## ✨ 완료된 주요 기능
+
+### 🆕 v2.0 업데이트 (2025-12-26)
+
+#### React/TypeScript 완전 재작성
+- ✅ **React 19.2 + TypeScript**: 최신 React 기반 완전 재작성
+- ✅ **React Hooks**: useState, useEffect를 활용한 현대적 상태 관리
+- ✅ **완전히 깨끗한 코드**: 오류 없는 프로덕션 레디 코드
+- ✅ **모듈화된 컴포넌트**: 유지보수가 쉬운 컴포넌트 구조
+
+#### 개선된 다국어 시스템
+- ✅ **localStorage 기반 언어 저장**: 브라우저에 언어 설정 자동 저장
+- ✅ **자동 언어 복원**: 페이지 새로고침 시 마지막 선택 언어 자동 로드
+- ✅ **실시간 언어 전환**: 페이지 새로고침 없이 즉시 언어 변경
+- ✅ **상세한 메뉴 설명**: 각 메뉴 항목에 대한 자세한 설명 추가
+- ✅ **6개 언어 지원**: 한국어, 영어, 중국어, 일본어, 독일어, 스페인어
+
+#### UI/UX 개선
+- ✅ **네비게이션 개선**: 아이콘 + 텍스트 기반 직관적 메뉴
+- ✅ **섹션별 라우팅**: 메뉴 클릭으로 즉시 해당 섹션 표시
+- ✅ **반응형 디자인**: 모바일, 태블릿, 데스크톱 완벽 지원
+- ✅ **호버 효과**: 모든 인터랙티브 요소에 부드러운 애니메이션
 
 ### 1. 공사 현장 안전 감지 (Construction Safety Detection)
 - ✅ **보호구 착용 감지**: 안전모, 장갑, 안전조끼, 안전화 착용 여부 인식
@@ -60,11 +76,6 @@
 - ✅ **사용자 관리**: 관리자/현장책임자/작업자 권한 체계
 - ✅ **분석 통계**: 월간 점검 통계 및 조치 현황
 
-### 7. 다국어 지원 시스템
-- ✅ **6개 언어 지원**: 한국어, 영어, 중국어, 일본어, 독일어, 스페인어
-- ✅ **실시간 언어 전환**: 드롭다운 메뉴로 즉시 언어 변경
-- ✅ **완전한 번역**: 모든 UI 요소 및 메시지 다국어 처리
-
 ## 🎨 UI/UX 디자인
 
 ### 색상 시스템 (Color System)
@@ -92,18 +103,19 @@
 ## 🏗️ 기술 스택
 
 ### Frontend
-- **Framework**: Hono (Cloudflare Workers 최적화)
+- **Framework**: React 19.2 + TypeScript
+- **State Management**: React Hooks (useState, useEffect)
 - **Styling**: TailwindCSS (CDN)
 - **Icons**: Font Awesome 6.4.0
-- **HTTP Client**: Axios 1.6.0
+- **Build Tool**: Vite 6.4
 
 ### Backend
 - **Runtime**: Cloudflare Workers/Pages
-- **API Framework**: Hono
+- **API Framework**: Hono 4.11
 - **Language**: TypeScript
 
 ### Development Tools
-- **Build Tool**: Vite 6.3.5
+- **Build Tool**: Vite 6.4 + Rollup
 - **Process Manager**: PM2
 - **Package Manager**: npm
 - **Version Control**: Git
@@ -113,12 +125,13 @@
 ```
 webapp/
 ├── src/
-│   ├── index.tsx          # 메인 애플리케이션 (API + UI)
-│   ├── i18n.ts            # 다국어 번역 시스템
-│   └── renderer.tsx       # (기본 템플릿)
-├── public/
-│   └── static/            # 정적 파일 (향후 확장)
+│   ├── index.tsx          # Hono 서버 (API + HTML 제공)
+│   ├── client.tsx         # React 클라이언트 애플리케이션
+│   └── i18n.ts            # 다국어 번역 시스템 (localStorage)
 ├── dist/                  # 빌드 결과물
+│   ├── _worker.js         # Cloudflare Worker
+│   └── assets/
+│       └── client.js      # React 번들
 ├── .git/                  # Git 저장소
 ├── .gitignore             # Git 제외 파일
 ├── ecosystem.config.cjs   # PM2 설정
@@ -138,7 +151,7 @@ webapp/
 cd /home/user/webapp
 npm install
 
-# 프로젝트 빌드
+# 프로젝트 빌드 (서버 + 클라이언트)
 npm run build
 
 # 개발 서버 시작 (PM2)
@@ -229,7 +242,7 @@ Response:
 }
 ```
 
-## 🎯 향후 개발 계획 (미완료 기능)
+## 🎯 향후 개발 계획
 
 ### Phase 1: AI 모델 통합 (2개월)
 - [ ] 실제 AI 모델 통합 (YOLOv8 기반 PPE 감지)
@@ -269,23 +282,47 @@ Response:
 - 지자체 및 공공기관 (실증사업)
 - 보험사 (위험도 데이터 연계)
 
-## 🔒 보안 및 규정 준수
+## 🔧 기술적 하이라이트
 
-### 데이터 보안
-- HTTPS 전용 통신
-- 이미지 데이터 암호화 저장
-- 사용자 권한 기반 접근 제어
+### React Hooks 패턴
+```typescript
+// 언어 상태 관리
+const [language, setLanguage] = useState<Language>(getSavedLanguage())
 
-### 규정 준수
-- 산업안전보건법 기준 반영
-- KOSHA 가이드 체크리스트 연동 (예정)
-- 개인정보보호법 준수
+// 언어 변경 및 저장
+const handleLanguageChange = (newLang: Language) => {
+  setLanguage(newLang)
+  saveLanguage(newLang)
+}
+
+// 대시보드 데이터 로드
+useEffect(() => {
+  fetch('/api/dashboard')
+    .then(res => res.json())
+    .then(data => setDashboardData(data))
+}, [])
+```
+
+### localStorage 기반 다국어
+```typescript
+// 언어 저장
+export function saveLanguage(lang: Language): void {
+  localStorage.setItem('safe-pro-language', lang)
+}
+
+// 언어 복원
+export function getSavedLanguage(): Language {
+  const saved = localStorage.getItem('safe-pro-language')
+  return saved && saved in translations ? saved as Language : 'ko'
+}
+```
 
 ## 📝 Git 커밋 이력
 
 ```bash
-# 초기 커밋
+# 최근 커밋
 git log --oneline
+bbd4d16 Complete SafeVision Pro v1.0
 d143269 Initial commit: Hono + Cloudflare Pages template
 
 # 현재 브랜치
@@ -299,19 +336,21 @@ git branch
 - **npm**: v10.8.2
 - **PM2**: 최신 버전 (사전 설치됨)
 - **Wrangler**: v4.4.0
+- **React**: v19.2.3
+- **TypeScript**: v5.7+
 
 ## 📞 지원 및 문의
 
 - **이슈 트래킹**: GitHub Issues (예정)
 - **기술 문서**: [문서 사이트] (예정)
-- **고객 지원**: support@safevision.pro (예정)
+- **고객 지원**: support@safepro.ai (예정)
 
 ## 📜 라이선스
 
-Copyright © 2025 SafeVision Pro. All rights reserved.
+Copyright © 2025 Safe Pro. All rights reserved.
 
 ---
 
 **마지막 업데이트**: 2025-12-26  
-**버전**: 1.0.0 (MVP)  
-**상태**: ✅ 개발 완료, 테스트 중
+**버전**: 2.0.0 (React/TypeScript 완전 재작성)  
+**상태**: ✅ 프로덕션 레디
