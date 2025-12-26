@@ -8,7 +8,7 @@ app.use('/api/*', cors())
 
 // Favicon 및 정적 파일 처리 (404 대신 빈 응답)
 app.get('/favicon.ico', (c) => {
-  return c.body('', 204) // No Content
+  return c.body(null, 204) // No Content with null body
 })
 
 // robots.txt 처리
