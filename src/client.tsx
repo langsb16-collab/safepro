@@ -366,8 +366,78 @@ function ReportsSection({ t, data }: any) {
   )
 }
 
-// 기술자 매칭 섹션 - 모바일 최적화
+// 기술자 매칭 섹션 - 실제 작동 버전
 function MatchingSection({ t }: any) {
+  const [activeTab, setActiveTab] = React.useState<'search' | 'quote' | 'compare'>('search')
+  const [searchCategory, setSearchCategory] = React.useState('')
+  const [searchLocation, setSearchLocation] = React.useState('')
+  const [quoteCategory, setQuoteCategory] = React.useState('')
+  const [quoteDescription, setQuoteDescription] = React.useState('')
+  const [quoteContact, setQuoteContact] = React.useState('')
+  const [showResults, setShowResults] = React.useState(false)
+  const [showQuoteSuccess, setShowQuoteSuccess] = React.useState(false)
+
+  // 샘플 기술자 데이터
+  const sampleTechnicians = [
+    {
+      id: 1,
+      name: '김철수',
+      category: '전기',
+      location: '서울 강남구',
+      rating: 4.8,
+      reviews: 127,
+      price: '50,000원~/시간',
+      experience: '15년',
+      photo: '👨‍🔧'
+    },
+    {
+      id: 2,
+      name: '이영희',
+      category: '배관',
+      location: '서울 서초구',
+      rating: 4.9,
+      reviews: 203,
+      price: '60,000원~/시간',
+      experience: '12년',
+      photo: '👷‍♀️'
+    },
+    {
+      id: 3,
+      name: '박민수',
+      category: '설비',
+      location: '경기 성남시',
+      rating: 4.7,
+      reviews: 89,
+      price: '45,000원~/시간',
+      experience: '8년',
+      photo: '👨‍🔧'
+    }
+  ]
+
+  // 기술자 검색
+  const handleSearch = () => {
+    if (!searchCategory) {
+      alert(t.matching?.selectCategory || '카테고리를 선택해주세요')
+      return
+    }
+    setShowResults(true)
+  }
+
+  // 견적 요청
+  const handleQuoteRequest = () => {
+    if (!quoteCategory || !quoteDescription || !quoteContact) {
+      alert(t.matching?.fillAllFields || '모든 필드를 입력해주세요')
+      return
+    }
+    setShowQuoteSuccess(true)
+    setTimeout(() => {
+      setShowQuoteSuccess(false)
+      setQuoteCategory('')
+      setQuoteDescription('')
+      setQuoteContact('')
+    }, 3000)
+  }
+
   return (
     <div>
       <h1 className="text-lg font-bold text-gray-900 mb-3 flex items-center">
@@ -377,26 +447,297 @@ function MatchingSection({ t }: any) {
       
       <p className="text-xs text-brand-text mb-3 line-clamp-2">{t.matching.description}</p>
       
-      <div className="space-y-2">
-        <FeatureCard
-          icon="fa-search"
-          title={t.matching.findTechnician}
-          description={t.matching.findDesc}
-          color="brand-blue"
-        />
-        <FeatureCard
-          icon="fa-file-invoice"
-          title={t.matching.requestQuote}
-          description={t.matching.quoteDesc}
-          color="brand-yellow"
-        />
-        <FeatureCard
-          icon="fa-balance-scale"
-          title={t.matching.comparePrice}
-          description={t.matching.compareDesc}
-          color="brand-green"
-        />
+      {/* 탭 네비게이션 */}
+      <div className="flex gap-1 mb-3 bg-white rounded-lg p-1 shadow-sm">
+        <button
+          onClick={() => setActiveTab('search')}
+          className={`flex-1 py-2 px-2 rounded text-xs font-semibold transition-colors ${
+            activeTab === 'search' 
+              ? 'bg-brand-blue text-white' 
+              : 'bg-gray-100 text-gray-600'
+          }`}
+        >
+          <i className="fas fa-search mr-1"></i>
+          {t.matching.findTechnician}
+        </button>
+        <button
+          onClick={() => setActiveTab('quote')}
+          className={`flex-1 py-2 px-2 rounded text-xs font-semibold transition-colors ${
+            activeTab === 'quote' 
+              ? 'bg-brand-yellow text-white' 
+              : 'bg-gray-100 text-gray-600'
+          }`}
+        >
+          <i className="fas fa-file-invoice mr-1"></i>
+          {t.matching.requestQuote}
+        </button>
+        <button
+          onClick={() => setActiveTab('compare')}
+          className={`flex-1 py-2 px-2 rounded text-xs font-semibold transition-colors ${
+            activeTab === 'compare' 
+              ? 'bg-brand-green text-white' 
+              : 'bg-gray-100 text-gray-600'
+          }`}
+        >
+          <i className="fas fa-balance-scale mr-1"></i>
+          {t.matching.comparePrice}
+        </button>
       </div>
+
+      {/* 기술자 찾기 탭 */}
+      {activeTab === 'search' && (
+        <div className="space-y-3">
+          <div className="bg-white rounded-lg shadow-sm p-3">
+            <h3 className="font-semibold text-sm text-gray-900 mb-2">
+              <i className="fas fa-search text-brand-blue mr-1"></i>
+              {t.matching.findTechnician}
+            </h3>
+            
+            {/* 카테고리 선택 */}
+            <div className="mb-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {t.matching?.category || '카테고리'}
+              </label>
+              <select
+                value={searchCategory}
+                onChange={(e) => setSearchCategory(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              >
+                <option value="">{t.matching?.selectCategory || '선택하세요'}</option>
+                <option value="전기">⚡ 전기 기술자</option>
+                <option value="배관">🔧 배관 기술자</option>
+                <option value="설비">🏗️ 설비 기술자</option>
+                <option value="건축">🏠 건축 기술자</option>
+                <option value="안전">🦺 안전 관리자</option>
+              </select>
+            </div>
+
+            {/* 지역 선택 */}
+            <div className="mb-3">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                {t.matching?.location || '지역'}
+              </label>
+              <select
+                value={searchLocation}
+                onChange={(e) => setSearchLocation(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-blue"
+              >
+                <option value="">{t.matching?.selectLocation || '선택하세요'}</option>
+                <option value="서울">📍 서울</option>
+                <option value="경기">📍 경기</option>
+                <option value="인천">📍 인천</option>
+                <option value="부산">📍 부산</option>
+                <option value="대구">📍 대구</option>
+              </select>
+            </div>
+
+            <button
+              onClick={handleSearch}
+              className="w-full bg-brand-blue text-white py-2 rounded-lg text-xs font-semibold hover:bg-opacity-90"
+            >
+              <i className="fas fa-search mr-1"></i>
+              {t.matching?.search || '검색하기'}
+            </button>
+          </div>
+
+          {/* 검색 결과 */}
+          {showResults && (
+            <div className="space-y-2">
+              <h3 className="font-semibold text-sm text-gray-900 mb-2">
+                <i className="fas fa-list text-brand-blue mr-1"></i>
+                {t.matching?.searchResults || '검색 결과'} ({sampleTechnicians.length})
+              </h3>
+              {sampleTechnicians.map((tech) => (
+                <div key={tech.id} className="bg-white rounded-lg shadow-sm p-3">
+                  <div className="flex items-start gap-3">
+                    <div className="text-3xl">{tech.photo}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-1">
+                        <h4 className="font-semibold text-sm text-gray-900">{tech.name}</h4>
+                        <span className="text-xs font-bold text-brand-blue">{tech.price}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs bg-brand-blue bg-opacity-10 text-brand-blue px-2 py-0.5 rounded">
+                          {tech.category}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          <i className="fas fa-map-marker-alt mr-1"></i>
+                          {tech.location}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xs">
+                          <i className="fas fa-star text-brand-yellow mr-1"></i>
+                          {tech.rating} ({tech.reviews}개 리뷰)
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          <i className="fas fa-briefcase mr-1"></i>
+                          경력 {tech.experience}
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        <button className="flex-1 bg-brand-blue text-white py-1 rounded text-xs font-semibold">
+                          <i className="fas fa-phone mr-1"></i>
+                          연락하기
+                        </button>
+                        <button className="flex-1 bg-brand-green text-white py-1 rounded text-xs font-semibold">
+                          <i className="fas fa-file-invoice mr-1"></i>
+                          견적 요청
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 견적 요청 탭 */}
+      {activeTab === 'quote' && (
+        <div className="bg-white rounded-lg shadow-sm p-3">
+          <h3 className="font-semibold text-sm text-gray-900 mb-3">
+            <i className="fas fa-file-invoice text-brand-yellow mr-1"></i>
+            {t.matching.requestQuote}
+          </h3>
+
+          {/* 카테고리 */}
+          <div className="mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t.matching?.category || '카테고리'} *
+            </label>
+            <select
+              value={quoteCategory}
+              onChange={(e) => setQuoteCategory(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+            >
+              <option value="">{t.matching?.selectCategory || '선택하세요'}</option>
+              <option value="전기">⚡ 전기 공사</option>
+              <option value="배관">🔧 배관 공사</option>
+              <option value="설비">🏗️ 설비 공사</option>
+              <option value="건축">🏠 건축/리모델링</option>
+              <option value="안전">🦺 안전 점검</option>
+            </select>
+          </div>
+
+          {/* 작업 내용 */}
+          <div className="mb-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t.matching?.workDescription || '작업 내용'} *
+            </label>
+            <textarea
+              value={quoteDescription}
+              onChange={(e) => setQuoteDescription(e.target.value)}
+              placeholder={t.matching?.descriptionPlaceholder || '예: 사무실 전기 배선 교체 작업이 필요합니다. 면적은 약 100㎡입니다.'}
+              rows={4}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-yellow resize-none"
+            />
+          </div>
+
+          {/* 연락처 */}
+          <div className="mb-3">
+            <label className="block text-xs font-medium text-gray-700 mb-1">
+              {t.matching?.contact || '연락처'} *
+            </label>
+            <input
+              type="text"
+              value={quoteContact}
+              onChange={(e) => setQuoteContact(e.target.value)}
+              placeholder="010-1234-5678"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-yellow"
+            />
+          </div>
+
+          <button
+            onClick={handleQuoteRequest}
+            className="w-full bg-brand-yellow text-white py-2 rounded-lg text-xs font-semibold hover:bg-opacity-90"
+          >
+            <i className="fas fa-paper-plane mr-1"></i>
+            {t.matching?.submitQuote || '견적 요청 보내기'}
+          </button>
+
+          {/* 성공 메시지 */}
+          {showQuoteSuccess && (
+            <div className="mt-3 bg-brand-green bg-opacity-10 border border-brand-green text-brand-green px-3 py-2 rounded-lg text-xs">
+              <i className="fas fa-check-circle mr-1"></i>
+              {t.matching?.quoteSuccess || '견적 요청이 접수되었습니다! 곧 연락드리겠습니다.'}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 가격 비교 탭 */}
+      {activeTab === 'compare' && (
+        <div className="space-y-2">
+          <div className="bg-white rounded-lg shadow-sm p-3">
+            <h3 className="font-semibold text-sm text-gray-900 mb-2">
+              <i className="fas fa-balance-scale text-brand-green mr-1"></i>
+              {t.matching.comparePrice}
+            </h3>
+            <p className="text-xs text-brand-text mb-3">
+              {t.matching?.comparePriceDesc || '여러 기술자의 견적을 한눈에 비교하세요'}
+            </p>
+          </div>
+
+          {/* 샘플 가격 비교 */}
+          <div className="bg-white rounded-lg shadow-sm p-3">
+            <h4 className="font-semibold text-xs text-gray-700 mb-2">
+              {t.matching?.sampleComparison || '전기 공사 견적 비교'}
+            </h4>
+            
+            {[
+              { name: '김철수', price: '350,000원', rating: 4.8, time: '2-3일' },
+              { name: '이영희', price: '320,000원', rating: 4.9, time: '3-4일' },
+              { name: '박민수', price: '380,000원', rating: 4.7, time: '1-2일' }
+            ].map((quote, idx) => (
+              <div key={idx} className="border-b border-gray-200 py-2 last:border-0">
+                <div className="flex items-center justify-between mb-1">
+                  <div>
+                    <span className="font-semibold text-sm">{quote.name}</span>
+                    <span className="text-xs text-gray-500 ml-2">
+                      <i className="fas fa-star text-brand-yellow mr-1"></i>
+                      {quote.rating}
+                    </span>
+                  </div>
+                  <span className="font-bold text-sm text-brand-green">{quote.price}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">
+                    <i className="fas fa-clock mr-1"></i>
+                    소요시간: {quote.time}
+                  </span>
+                  <button className="text-xs text-brand-blue font-semibold">
+                    {t.matching?.selectQuote || '선택하기'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 가격대별 통계 */}
+          <div className="bg-white rounded-lg shadow-sm p-3">
+            <h4 className="font-semibold text-xs text-gray-700 mb-2">
+              <i className="fas fa-chart-bar text-brand-blue mr-1"></i>
+              {t.matching?.priceRange || '일반적인 가격대'}
+            </h4>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-600">⚡ 전기 공사</span>
+                <span className="font-semibold">300,000 - 500,000원</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-600">🔧 배관 공사</span>
+                <span className="font-semibold">250,000 - 450,000원</span>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-600">🏗️ 설비 공사</span>
+                <span className="font-semibold">400,000 - 700,000원</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

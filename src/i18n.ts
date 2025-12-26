@@ -98,7 +98,23 @@ export const translations = {
       requestQuote: '견적 요청',
       quoteDesc: '무료 견적 신청',
       comparePrice: '가격 비교',
-      compareDesc: '여러 견적 비교 분석'
+      compareDesc: '여러 견적 비교 분석',
+      category: '카테고리',
+      location: '지역',
+      selectCategory: '카테고리를 선택하세요',
+      selectLocation: '지역을 선택하세요',
+      search: '검색하기',
+      searchResults: '검색 결과',
+      workDescription: '작업 내용',
+      contact: '연락처',
+      descriptionPlaceholder: '예: 사무실 전기 배선 교체 작업이 필요합니다. 면적은 약 100㎡입니다.',
+      submitQuote: '견적 요청 보내기',
+      quoteSuccess: '견적 요청이 접수되었습니다! 곧 연락드리겠습니다.',
+      fillAllFields: '모든 필드를 입력해주세요',
+      comparePriceDesc: '여러 기술자의 견적을 한눈에 비교하세요',
+      sampleComparison: '전기 공사 견적 비교',
+      selectQuote: '선택하기',
+      priceRange: '일반적인 가격대'
     },
     
     // 기업 콘솔
@@ -228,7 +244,23 @@ export const translations = {
       requestQuote: 'Request Quote',
       quoteDesc: 'Free quote request',
       comparePrice: 'Compare Prices',
-      compareDesc: 'Compare multiple quotes'
+      compareDesc: 'Compare multiple quotes',
+      category: 'Category',
+      location: 'Location',
+      selectCategory: 'Select a category',
+      selectLocation: 'Select a location',
+      search: 'Search',
+      searchResults: 'Search Results',
+      workDescription: 'Work Description',
+      contact: 'Contact',
+      descriptionPlaceholder: 'e.g., Office electrical wiring replacement needed. Approx. 100㎡ area.',
+      submitQuote: 'Submit Quote Request',
+      quoteSuccess: 'Quote request submitted! We will contact you soon.',
+      fillAllFields: 'Please fill in all fields',
+      comparePriceDesc: 'Compare quotes from multiple technicians at a glance',
+      sampleComparison: 'Electrical Work Quote Comparison',
+      selectQuote: 'Select',
+      priceRange: 'Typical Price Range'
     },
     
     enterpriseConsole: {
